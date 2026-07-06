@@ -1,0 +1,8 @@
+2022-02-25 08:54:11 file test_basic_radar.txt
+2022-2022-02-25 08:54:11 PD Map output file: hm-test_radar_2_sensor_pd.pd
+2022-02-25 08:54:11 GNU Plot output file: fpa-path.plt
+-02-25 08:54:11 file ../configurations/basic_radar_configuration.txt
+2022-02-25 08:54:11 file ../configurations/100x100_target_area.txt
+2022-02-25 08:54:11 Analysis Map output file: hm_basicRadar_sphereTarget_pd.analysis_map
+2022-02-25 08:54:11 Analysis Map output file: hm_basicRadar_sphereTarget_sig.analysis_map
+2022-02-25 08:54:11 PD Map output file: vm_basicRadar_sphereTarget_pd.vertical_map

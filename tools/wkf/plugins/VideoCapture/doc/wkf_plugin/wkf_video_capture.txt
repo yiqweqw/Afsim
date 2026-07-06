@@ -1,0 +1,15 @@
+.. ****************************************************************************
+.. CUI
+..
+.. The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+..
+.. The use, dissemination or disclosure of data in this file is subject to
+.. limitation or restriction. See accompanying README and LICENSE for details.
+.. ****************************************************************************
+
+
+The video and screen capture capabilities can be found in the Tools menu or may be executed at any time using their key sequences (defaults are Ctrl-Shift-V for video and Ctrl-Shift-S for screen shots).
+
+.. image:: ../images/wkf_video_capture_prefs.png
+
+The preferences include options to switch between capturing the active or main window, and for setting the output directory, file name template, and video quality.

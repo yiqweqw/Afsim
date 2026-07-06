@@ -1,0 +1,47 @@
+﻿# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# Recon sensor grammar mirrors WSF_ESM_SENSOR in wsf_mil.ag.
+(struct WSF_PASSIVE_RECON_SENSOR_beam
+   :base_type WSF_ESM_SENSOR_beam
+   :symbol (type sensorType WsfPassiveReconSensor template beams 1)
+   :symbol (type sensorType RECON_SENSOR template beams 1)
+{
+   <WSF_ESM_SENSOR_beam>
+})
+
+(struct WSF_PASSIVE_RECON_SENSOR_mode
+   :base_type WSF_ESM_SENSOR_mode
+   :symbol (type sensorType WsfPassiveReconSensor template)
+   :symbol (type sensorType RECON_SENSOR template)
+{
+   <WSF_ESM_SENSOR_mode>
+ | recon_noise_fn_db <real>
+ | recon_noise_t0 <real>
+ | recon_receiver_bandwidth <Frequency>
+ | recon_snr_scale <Ratio>
+ | recon_pulses_per_capture <integer>
+ | recon_process_time <Time>
+ | recon_pdw_num_limit <integer>
+ | recon_rf_tolerance <Ratio>
+ | recon_pw_tolerance <Ratio>
+ | recon_doa_tolerance <Angle>
+ | recon_min_cluster_size <integer>
+ | recon_identification_threshold <real>
+ | minFrequency <integer> <Frequency>
+ | maxFrequency <integer> <Frequency>
+})
+
+(struct WSF_PASSIVE_RECON_SENSOR
+   :base_type WSF_ESM_SENSOR
+   :symbol (type sensorType WsfPassiveReconSensor)
+   :symbol (type sensorType RECON_SENSOR)
+{
+   <WSF_ESM_SENSOR>
+})

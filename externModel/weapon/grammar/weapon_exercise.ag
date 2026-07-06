@@ -1,0 +1,85 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+(struct PHASER_WEAPON_mode
+   (var JammerXmtrAntenna xmtrAntenna)
+   (var Int maximumSpotsPerBeam)
+   (var Int maximumNumberOfBeams)
+   (var Int maximumNumberOfSpots)
+   (var Bool frequencyFollowing)
+   (var Bool signalFollowing)
+   (var Bool isBeamAveragePower :default true)
+
+   (rule jammer-beam-command {
+      maximum_spots_per_beam <$maximumSpotsPerBeam>
+    | spot_power_distribution average
+    | spot_power_distribution constant
+    | power_distribution constant
+    | power_distribution average
+   })
+   (rule repeater-command {
+      frequency_following <$frequencyFollowing>
+    | signal_following <$signalFollowing>
+    | operating_mode manual
+    | operating_mode semi-auto
+    | operating_mode semi_auto
+    | operating_mode auto
+    | debug_repeater
+    | debug
+   })
+
+{
+   <$xmtrAntenna>
+ | <jammer-beam-command>
+ | maximum_number_of_beams <$maximumNumberOfBeams>
+ | maximum_number_of_spots <$maximumNumberOfSpots>
+ | beam_power_distribution average     [isBeamAveragePower=true]
+ | beam_power_distribution constant    [isBeamAveragePower=false]
+ | <repeater-command>
+ | repeater
+      <repeater-command>*
+   end_repeater
+})
+
+(struct PHASER_WEAPON
+   :symbol (type weaponType PHASER_WEAPON)
+   (symbol (type weaponType PHASER_WEAPON template) PHASER_WEAPON_mode)
+   :base_type Weapon
+   (var PHASER_WEAPON_mode template)
+   (var ObjectMap/PHASER_WEAPON_mode mode)
+   (var String jammerGroup)
+   (var Bool isConstantPower :default true)
+{
+   jammer_group <$jammerGroup>
+ | group_power_distribution average  [isConstantPower=false]
+ | group_power_distribution constant [isConstantPower=true]
+   # | <mode-command>
+   # edit mode template, edit mode, add mode, implicit mode
+ | mode_template (load (subtype template)) [push(template)]
+      <TypeCommand>*
+   end_mode_template
+ | mode <string> (load (subtype mode $1)) [apply($$)]
+      <TypeCommand>*
+   end_mode
+ | mode <string> (new (subtype mode $1) (subtype template)) [apply($$)]
+      <TypeCommand>*
+   end_mode
+ | [push(template)] <PHASER_WEAPON_mode>
+ | <Weapon>
+})
+
+
+
+(struct PHASER_LETHALITY
+   :base_type WeaponEffect
+   :symbol (type weaponEffectType PHASER_LETHALITY)
+{
+   <WeaponEffect>
+ | shield_damage_rate <real>
+ | armor_damage_rate <real>    
+})

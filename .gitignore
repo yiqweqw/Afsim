@@ -1,0 +1,28 @@
+# Build directories
+BUILDS/
+build/
+install/
+
+# IDE files
+.vs/
+*.user
+*.suo
+.vscode/
+.idea/
+CMakeSettings.json
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Compiled
+*.obj
+*.pdb
+*.lib
+*.exp
+*.ilk
+wsf_plugins/

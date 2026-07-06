@@ -1,0 +1,152 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+(rule sensor-tracker-command {
+   debug_tracker
+ | maximum_track_count <integer>
+ | send_track_drop_on_turn_off <Bool>
+ | <filter-instance>
+})
+(rule detection-probability-table
+   (rule pd-or-probability (nocase { pd | probability } ) )
+   (rule table-command {
+      #TODO: case insensitive???
+      signal_to_noise <Ratio> <pd-or-probability> <real>
+   })
+{
+   detection_probability
+      <table-command>*
+   end_detection_probability
+})
+(rule marcum-swerling-commands
+{
+   detector_law <DetectorLaw>
+ | number_of_pulses_integrated <integer>
+ | probability_of_false_alarm <real>
+ | swerling_case { 0 | 1 | 2 | 3 | 4 }
+})
+(rule signal-processor-system-command
+{
+   signal_processor <string> (new (subtype signal_processor $1) (type signal_processor $1))
+      <TypeCommand>*
+   end_signal_processor
+ | signal_processor <string> (load (subtype signal_processor $1))
+      <TypeCommand>*
+   end_signal_processor
+ | delete_signal_processor <string> (delete (subtype signal_processor $1))
+})
+(rule mode-command {
+   initial_mode <string>
+ | selection_mode single
+ | selection_mode multiple
+ | mode_select_delay <Time>
+   # edit mode template
+ | mode_template (load (subtype template)) <TypeCommand>* end_mode_template
+   # edit mode
+ | mode <string> (load (subtype mode $1)) <TypeCommand>* end_mode
+   # add mode
+ | mode <string> (new (subtype mode $1) (subtype template)) <TypeCommand>* end_mode
+   # implicit mode
+ | (load (subtype template)) <TypeCommand>
+})
+(struct TRICORDER_SENSOR_beam
+   :symbol (type sensorType TRICORDER_SENSOR template beams 1)
+   (var Ratio integrationGain)
+   (var XmtrRcvrAntenna xmtrRcvr)
+   (var Ratio adjustmentFactor :default 1.0)
+   (var Ratio operatingLoss :default 0.0)
+   (var Ratio detectionThreshold :default 1.9952623149688796013524553967395)     #10^.3
+   (var Ratio postLockonDetectionThresholdAdjustment :default 1.0)
+   (var Time postLockonAdjustmentDelayTime :default "0 s")
+   (var Bool useDetector :default false)
+   (var AreaDB rangeProduct)
+   (var Length oneM2_Range)
+   (var Ratio loopGain :default "0 absolute")
+   (var Ratio lookDownFactor :default "1.0 absolute")
+   (var Ratio PRF_Factor :default "1.0 absolute")
+   (var Ratio clutterAttenuationFactor)
+
+   (rule error-model-parameters-command {
+      azimuth_beamwidth <Angle>
+    | elevation_beamwidth <Angle>
+    | pulse_width <Time>
+    | receiver_bandwidth <Frequency>
+    | doppler_resolution <Speed>
+   })
+{
+   [push(xmtrRcvr)] <XmtrRcvrAntenna.default>
+ | <clutter-instance>
+ | doppler_resolution <Speed>
+ | integration_gain <$integrationGain>
+ | adjustment_factor <$adjustmentFactor> [operatingLoss=0.0]
+ | operating_loss <$operatingLoss> [adjustmentFactor=1.0]
+ | detection_threshold <$detectionThreshold>
+ | post_lockon_detection_threshold_adjustment <$postLockonDetectionThresholdAdjustment>
+ | post_lockon_adjustment_delay_time <$postLockonAdjustmentDelayTime>
+ | <detection-probability-table>
+ | no_swerling_case [useDetector=false]
+ | <marcum-swerling-commands>
+ | error_model_parameters <error-model-parameters-command>* end_error_model_parameters
+ | one_m2_detect_range <$oneM2_Range>
+ | range_product <$rangeProduct>
+ | loop_gain <$loopGain>
+ | look_down_factor <$lookDownFactor>
+ | prf_factor <$PRF_Factor>
+ | clutter_attenuation_factor <$clutterAttenuationFactor>
+ | <signal-processor-system-command>
+})
+
+(struct TRICORDER_SENSOR_mode
+   :symbol (type sensorType TRICORDER_SENSOR template)
+   :base_type WSF_SENSOR_MODE
+   (var ObjectMap/TRICORDER_SENSOR_beam beams)  # size=1
+   (var Bool transmitOnly :default true)
+   (var Bool receiveOnly)
+   (var Bool computeMeasurementErrors)
+   (var Bool overrideMeasurementWithTruth)
+   (var Time frequencySelectDelay)
+   (initially { [new(beams,1)] _ } )
+{
+   compute_measurement_errors <$computeMeasurementErrors>
+ | override_measurement_with_truth <$overrideMeasurementWithTruth>
+ | receive_only                                 [receiveOnly=true]
+ | transmit_only                                [transmitOnly=true]
+ | frequency_select_delay <$frequencySelectDelay>
+ | <WSF_SENSOR_MODE>
+ | (load (subtype beams 1)) [push(beams.1)] <TypeCommand>
+ | beam <integer> (load (subtype beams $1)) [apply($$)] #[push(beams.$1)]
+      <TypeCommand>*
+   end_beam
+ | beam <integer> (new (subtype beams $1) (subtype beams 1)) [apply($$)]
+      <TypeCommand>*
+   end_beam
+ 
+})
+
+(struct TRICORDER_SENSOR
+   :symbol (type sensorType TRICORDER_SENSOR)
+   :base_type Sensor
+   (var TRICORDER_SENSOR_mode template)
+   (var ObjectMap/TRICORDER_SENSOR_mode mode)
+{
+   <Sensor>
+  | <mode-command>
+  | <sensor-tracker-command>
+   # TODO: wsf currently restricts trackers to be set in the C++ code,
+   # which allows us to explicitly call the correct input here.
+   # If there is ever a time when the tracker may change, this will need
+   # to be more dynamic.
+
+   # edit mode template, edit mode, add mode, implicit mode
+ | mode_template (load (subtype template)) [push(template)] <TypeCommand>* end_mode_template
+ | mode <string> (load (subtype mode $1)) [apply($$)] <TypeCommand>* end_mode
+ | mode <string> (new (subtype mode $1) (subtype template)) [apply($$)] <TypeCommand>* end_mode
+ | (load (subtype template)) [apply($$)] <TypeCommand>
+})
