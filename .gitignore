@@ -25,4 +25,5 @@ __pycache__/
 *.lib
 *.exp
 *.ilk
-wsf_plugins/
+# Exclude pre-built libraries (over GitHub 100MB limit)
+wsf_plugins/wsf_oms_uci/lib/
